@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{  .Values.mysql.name  }}
+  namespace : {{  .Values.mysql.nameSpace  }}
+spec:
+  replicas: {{ .Values.mysql.replicaCount }}
+  serviceName: {{ .Values.mysql.name  }}-headless-svc
+  selector:
+    matchLabels:
+      app: {{  .Values.mysql.name  }}-helm
+  template:
+    metadata:
+      labels:
+        app: {{  .Values.mysql.name  }}-helm
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: {{  .Values.mysql.name  }}-helm
+          image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}"
+          imagePullPolicy: {{ .Values.mysql.image.pullPolicy }}
+          ports:
+            - name: tcp
+              containerPort: 3306
+              protocol: TCP
+          env:
+            - name: {{  .Values.mysql.seCret.naMe  }}
+              valueFrom: 
+                secretKeyRef:
+                  name: {{ .Values.mysql.name  }}-secret 
+                  key: {{  .Values.mysql.seCret.kEy  }}
+            - name: {{  .Values.mysql.dataBases.naMe  }}
+              valueFrom: 
+                configMapKeyRef:
+                  name: {{  .Values.mysql.name  }}-configmap
+                  key: {{  .Values.mysql.dataBases.kEy  }}
+          volumeMounts:
+            - name: {{  .Values.mysql.name  }}-disk
+              mountPath: /var/lib/mysql            
+  volumeClaimTemplates:
+    - metadata:
+        name: {{  .Values.mysql.name  }}-disk
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi                
+                  

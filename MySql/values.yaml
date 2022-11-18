@@ -1,0 +1,36 @@
+# Default values for MySql.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+mysql:
+
+  name: mysql 
+
+  nameSpace: helm-2-tier-app
+
+  replicaCount: 3
+
+  image:
+    repository: mysql
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "5.7"
+
+  service:
+    port: 3306
+
+  seCret:
+    naMe: MYSQL_ROOT_PASSWORD
+    kEy: ROOT_PASSWORD   
+
+  dataBases: 
+    naMe: MYSQL_DATABASE
+    dataBase: todos
+    kEy: MYSQL_DATABASE
+
+
+    
+
+
+
+
+

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.mysql.name }}-headless-svc
+  namespace : {{  .Values.mysql.nameSpace  }}
+  labels:
+    app: {{  .Values.mysql.name  }}-helm
+spec:
+  clusterIP: None
+  ports:
+    - port: {{ .Values.mysql.service.port }}
+      targetPort: tcp
+      protocol: TCP
+  selector:
+    app: {{  .Values.mysql.name  }}-helm
+
+
