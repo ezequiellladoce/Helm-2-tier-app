@@ -38,6 +38,7 @@ Create a a helm chart
 ```
 helm create helm-chart
 ```
+![create](https://user-images.githubusercontent.com/67485607/202907375-4b67f084-cbb2-40ac-92d7-dfd85ead3cdf.png)
 
 We will not need the templates files generated files inside ./templates folder, so we can delete them. We can also clear all the content inside values.yaml.
 
