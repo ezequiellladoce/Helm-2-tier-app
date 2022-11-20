@@ -222,7 +222,8 @@ kubectl port-forward service/myadmin-svc 3000:80 -n helm-2-tier-app
 You can check the PhpMyAdmin in your browser with the url localhost:3000
 Login with root /password add check the databases
 
+![front](https://user-images.githubusercontent.com/67485607/202907779-e7a87dcc-99aa-427f-92c2-306e3cdb21fd.PNG)
 
-### Install the chart
+### Uninstall the chart
 
 helm uninstall myapp -n helm-2-tier-app
