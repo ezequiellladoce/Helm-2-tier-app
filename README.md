@@ -1,41 +1,105 @@
 # Helm-2-tier-app
 
+In this repo we will deploy the 2 tier app from https://github.com/ezequiellladoce/k8s-2-tier-app in kubernetes with helm. 
+
+Helm is a package manager for Kubernetes. With helm we can simplify the deployment of a complex app by creating charts that contain all the information to run applications on your cluster.
+
+Basically a helm has the following structure:
+
+   Chart.yaml
+
+   values.yaml
+
+   .helmignore
+
+   charts/
+
+   templates/
+
+Where:
+
+ - Chart.yaml: it stores the metadata about the chart and version information
+ - values.yaml: it contains the configuration values which are interpolated inside the template
+ - charts/: this directory contains the packages of the dependencies we add in the requirements file.
+ - templates/: this is the core directory that contains the actual template of our application and contains — application.yaml, deployment.yaml, ingress.yaml, service.yaml and serviceaccount.yaml, etc.
+
+Kubernetes objects will result of the combination of the value.yalm file with the templates/ folder there are Helm templates are.
+
+## Prerequisites 📋
+
+- A k8s cluster v1.9 or later, for testing purposes can be minikube (https://minikube.sigs.k8s.io/docs/). You can check the k8s server with the command kubectl version
+- kubectl configured to communicate with the cluster
+- Helm V3
+
+## Starting 🚀
+
+Create a a helm chart
+
+```
+helm create helm-chart
+```
+
+We will not need the templates files generated files inside ./templates folder, so we can delete them. We can also clear all the content inside values.yaml.
+
+Now we have to create the chart, first we will create the template of the mysql StatefulSet in the ./templates folder.
+
+```
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{  .Values.mysql.name  }}
+  namespace : {{  .Values.mysql.nameSpace  }}
+spec:
+  replicas: {{ .Values.mysql.replicaCount }}
+  serviceName: {{ .Values.mysql.name  }}-headless-svc
+  selector:
+    matchLabels:
+      app: {{  .Values.mysql.name  }}-helm
+```
+
+The {{  .Values.mysql.name  }} reference the value located in values.yaml inthe chart folder
+
+```
+mysql:
+  name: mysql 
+```
+Another example is:
+
+```
+mysql:
+  image:
+    repository: mysql:5.7
+```
+
+In that way we define all that we need in the ./templates and in the value.yaml. If you need to do a more complex templatization you can check the helm official documentation.
+ 
+## Deploy 📦  
+
+Clone the repo https://github.com/ezequiellladoce/Helm-2-tier-app
+
+### Create namespace
+
 kubectl create namespace helm-2-tier-app
 
-helm install -f values.yaml mysql . -n helm-2-tier-app  
+### Install the chart
 
-helm uninstall mysql -n helm-2-tier-app
- 
-helm upgrade --install mysql --values values.yaml . -n helm-2-tier-app
+cd the values.yaml folder and install the chart
 
-PS C:\00_Devops\Helm-2-tier-app\MySql> helm upgrade --install mysql --values values.yaml . -n helm-2-tier-app
-Release "mysql" has been upgraded. Happy Helming!
-LAST DEPLOYED: Fri Nov 18 13:44:03 2022
+```
+helm upgrade --install myapp --values values.yaml . -n helm-2-tier-app
+```
+Were my app isn teha name of the release
+
+The outpust is similar to that:
+```
+Release "myapp" does not exist. Installing it now.
+NAME: myapp
+LAST DEPLOYED: Sun Nov 20 14:49:15 2022
 NAMESPACE: helm-2-tier-app
-REVISION: 2
+STATUS: deployed
+REVISION: 1
 TEST SUITE: None
-
-PS C:\00_Devops\Helm-2-tier-app\MySql> kubectl get pods -n helm-2-tier-app
-NAME           READY   STATUS    RESTARTS   AGE
-mysql-1        1/1     Running   0          9s
-mysql-2        1/1     Running   0          5s
-mysql-client   1/1     Running   0          102s
-
-PS C:\00_Devops\Helm-2-tier-app\MySql> kubectl get svc -n helm-2-tier-app 
-NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)    AGE
-mysql-headless-svc   ClusterIP   None         <none>        3306/TCP   2m17s
-
-PS C:\00_Devops\Helm-2-tier-app\MySql> kubectl get pv  -n helm-2-tier-app
-NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                                STORAGECLASS   REASON   AGE
-pvc-0fb60844-82ed-432c-86c8-414bdd89d6ea   1Gi        RWO            Delete           Bound    helm-2-tier-app/mysql-disk-mysql-2   hostpath                79s
-pvc-c41c0044-f841-4c10-91dc-7711db4e5da0   1Gi        RWO            Delete           Bound    helm-2-tier-app/mysql-disk-mysql-0   hostpath                84m
-pvc-d48c14dc-307c-4a5f-8222-07874dea4a81   1Gi        RWO            Delete           Bound    helm-2-tier-app/mysql-disk-mysql-1   hostpath                82s
-PS C:\00_Devops\Helm-2-tier-app\MySql> kubectl get pvc  -n helm-2-tier-app
-NAME                 STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-mysql-disk-mysql-0   Bound    pvc-c41c0044-f841-4c10-91dc-7711db4e5da0   1Gi        RWO            hostpath       85m
-mysql-disk-mysql-1   Bound    pvc-d48c14dc-307c-4a5f-8222-07874dea4a81   1Gi        RWO            hostpath       94s
-mysql-disk-mysql-2   Bound    pvc-0fb60844-82ed-432c-86c8-414bdd89d6ea   1Gi        RWO            hostpath       90s
-PS C:\00_Devops\Helm-2-tier-app\MySql>
+```
 
 #### Test the MySql SatefulSet
 
@@ -44,7 +108,7 @@ PS C:\00_Devops\Helm-2-tier-app\MySql>
 We can access directly to the pod with the pod name in a StatefulSet the pod name is
 
 ```
-
+kubectl exec -it mysql-0 -n helm-2-tier-app -- mysql -u root -p
 ```
 The output is similar to:
 ```
@@ -77,31 +141,13 @@ mysql> show databases
 +--------------------+
 5 rows in set (0.02 sec)
 ```
-As you can see the todos database was created throw the mysql image env in the stateful set introduced by the ConfigMap
- 
-In the StatefulSet
-```
-configMapKeyRef:
-  name: mysql-configmap
-  key: MYSQL_DATABASE     
-```
-In the ConfigMap
-```
-data:
-  MYSQL_DATABASE: todos
-```
 
 ##### Test the DNS suport
 
-First we will create a Msql client pod
-```
-kubectl apply -f mysql-client.yaml -n k8s-app
+We will connect to the mysql-client pod creted with the release and install the mysql client
 
 ```
-we connect to the pod and install the mysql client
-
-```
-kubectl exec --stdin --tty mysql-client -n k8s-app -- sh
+kubectl exec --stdin --tty mysql-client -n helm-2-tier-app k8s-app -- sh
 apk add mysql-client
 exit
 ```
@@ -112,12 +158,14 @@ The DNS structure of the pod dns is:
 
 The DNS of the pod 0 is: 
 
-mysql-0.headless-mysql-svc.k8s-app.svc.cluster.local
+mysql-0.mysql-headless-svc.helm-2-tier-app.svc.cluster.local
 
 we can connect to the database with the pod dns
 ```
-kubectl exec --stdin --tty mysql-client -n k8s-app -- sh
-mysql -h mysql-0.headless-mysql-svc.k8s-app.svc.cluster.local -p
+
+kubectl exec --stdin --tty mysql-client -n helm-2-tier-app -- sh
+
+mysql -h  mysql-0.mysql-headless-svc.helm-2-tier-app.svc.cluster.local -u root -p
 MySQL [(none)]> show databases;
 +--------------------+
 | Database           |
@@ -134,14 +182,14 @@ The DNS structure of the service is:
 
 $(service).$(namespace).svc.cluster.local
 
-The NDS of the svc is:
+The DNS of the svc is:
 
-headless-mysql-svc.k8s-app.svc.cluster.local
+mysql-headless-svc.helm-2-tier-app.svc.cluster.local
 
 
 we can connect to the database with the svc dns
 ```
-/ # mysql -h headless-mysql-svc.k8s-app.svc.cluster.local -p
+/ # mysql -h mysql-headless-svc.helm-2-tier-app.svc.cluster.local -p
 Enter password:
 Welcome to the MariaDB monitor.  Commands end with ; or \g.
 Your MySQL connection id is 2
@@ -162,3 +210,18 @@ MySQL [(none)]> show databases;
 | todos              |
 +--------------------+
 5 rows in set (0.010 sec)
+```
+### Test the front-end
+ 
+To access the front-end we use the kubectl port-forward   
+```
+kubectl port-forward service/myadmin-svc 3000:80 -n helm-2-tier-app
+```
+
+You can check the PhpMyAdmin in your browser with the url localhost:3000
+Login with root /password add check the databases
+
+
+### Install the chart
+
+helm uninstall myapp -n helm-2-tier-app

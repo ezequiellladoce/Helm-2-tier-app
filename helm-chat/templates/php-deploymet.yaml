@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{  .Values.myadmin.name  }}
+  namespace: {{  .Values.myadmin.nameSpace  }}
+  labels:
+    app: {{  .Values.myadmin.name  }}
+spec:
+  replicas: {{  .Values.myadmin.replicaCount  }}
+  selector:
+    matchLabels:
+      app: {{  .Values.myadmin.name  }}
+  template:
+    metadata:
+      labels:
+        app: {{  .Values.myadmin.name  }}
+    spec:
+      containers:
+        - name: {{  .Values.myadmin.name  }}
+          image: "{{ .Values.myadmin.image.repository }}"
+          imagePullPolicy: {{ .Values.mysql.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+          env:
+            - name: {{  .Values.myadmin.enVs.connectKey  }}
+              value: {{  .Values.myadmin.enVs.connectValue  }}
+            - name: {{  .Values.myadmin.enVs.portKey  }}
+              value: "{{  .Values.myadmin.enVs.portValue  }}"
+            - name: {{  .Values.mysql.seCret.naMe  }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mysql.name  }}-secret 
+                  key: {{  .Values.mysql.seCret.kEy  }}
+

@@ -17,7 +17,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
         - name: {{  .Values.mysql.name  }}-helm
-          image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}"
+          image: "{{ .Values.mysql.image.repository }}"
           imagePullPolicy: {{ .Values.mysql.image.pullPolicy }}
           ports:
             - name: tcp

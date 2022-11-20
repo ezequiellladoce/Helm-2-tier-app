@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{  .Values.myadmin.name  }}-svc
+  namespace: {{  .Values.myadmin.nameSpace  }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: {{  .Values.myadmin.name  }}
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80

@@ -7,14 +7,12 @@ mysql:
 
   nameSpace: helm-2-tier-app
 
-  replicaCount: 3
+  replicaCount: 2
 
   image:
-    repository: mysql
+    repository: mysql:5.7
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "5.7"
-
   service:
     port: 3306
 
@@ -26,6 +24,28 @@ mysql:
     naMe: MYSQL_DATABASE
     dataBase: todos
     kEy: MYSQL_DATABASE
+
+myadmin:
+
+  name: myadmin   
+
+  nameSpace: helm-2-tier-app
+
+  replicaCount: 2
+
+  image:
+    repository: phpmyadmin/phpmyadmin
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion. 
+
+  enVs:
+    connectKey: PMA_HOST
+    connectValue: mysql-headless-svc.helm-2-tier-app.svc.cluster.local
+    portKey: PMA_PORT
+    portValue: 3306
+
+  
+
 
 
     
