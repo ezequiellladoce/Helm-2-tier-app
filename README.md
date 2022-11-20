@@ -1,4 +1,4 @@
-# Helm-2-tier-app
+# Helm depoy a 2 tier app
 
 In this repo we will deploy the 2 tier app from https://github.com/ezequiellladoce/k8s-2-tier-app in kubernetes with helm. 
 
